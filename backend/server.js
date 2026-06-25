@@ -68,10 +68,13 @@ app.post('/webhook', (req, res) => {
       // Extract details
       if (changeValue.messages && changeValue.messages[0]) {
         const message = changeValue.messages[0];
-        console.log(`Received message from ${message.from}:`, message);
+        console.log(`\n[WEBHOOK] Received message from ${message.from}:`, JSON.stringify(message, null, 2));
       } else if (changeValue.statuses && changeValue.statuses[0]) {
         const status = changeValue.statuses[0];
-        console.log(`Received status update for message ${status.id}:`, status.status);
+        console.log(`\n[WEBHOOK] Status update for message ${status.id}: ${status.status}`);
+        if (status.errors) {
+          console.error(`[WEBHOOK ERROR] Delivery failed. Reason:`, JSON.stringify(status.errors, null, 2));
+        }
       }
     }
     res.sendStatus(200);
@@ -124,6 +127,9 @@ app.post('/api/send-message', async (req, res) => {
   }
 
   try {
+    console.log(`\n[SENDING MESSAGE] Preparing to send to ${to}`);
+    console.log(`[PAYLOAD]`, JSON.stringify(data, null, 2));
+
     const response = await axios({
       method: 'POST',
       url: `https://graph.facebook.com/${API_VERSION}/${phoneNumberId}/messages`,
@@ -133,6 +139,8 @@ app.post('/api/send-message', async (req, res) => {
         'Content-Type': 'application/json',
       },
     });
+
+    console.log(`[META RESPONSE] Success:`, JSON.stringify(response.data, null, 2));
 
     // Store outgoing activity
     const activity = {
