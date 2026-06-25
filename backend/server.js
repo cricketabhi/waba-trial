@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 3001;
 const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN || 'your_verify_token';
 const GRAPH_API_TOKEN = process.env.GRAPH_API_TOKEN;
 const API_VERSION = process.env.API_VERSION || 'v18.0';
+const WABA_ID = process.env.WABA_ID;
 
 // In-memory storage for messages to serve the frontend
 let messagesActivity = [];
@@ -92,10 +93,30 @@ app.get('/api/activity', (req, res) => {
 });
 
 // ==========================================
+// API for Frontend: Fetch Templates
+// ==========================================
+app.get('/api/templates', async (req, res) => {
+  if (!WABA_ID) {
+    return res.status(400).json({ error: 'Missing WABA_ID in backend .env' });
+  }
+  
+  try {
+    const response = await axios.get(`https://graph.facebook.com/${API_VERSION}/${WABA_ID}/message_templates`, {
+      headers: { Authorization: `Bearer ${GRAPH_API_TOKEN}` }
+    });
+    // Meta returns templates inside response.data.data
+    res.json(response.data.data || []);
+  } catch (error) {
+    console.error('Error fetching templates:', error.response ? error.response.data : error.message);
+    res.status(500).json({ error: 'Failed to fetch templates' });
+  }
+});
+
+// ==========================================
 // API to Send Messages
 // ==========================================
 app.post('/api/send-message', async (req, res) => {
-  const { phoneNumberId, to, type, text, documentUrl, documentCaption, documentFilename, templateName, templateLanguage } = req.body;
+  const { phoneNumberId, to, type, text, documentUrl, documentCaption, documentFilename, templateName, templateLanguage, templateComponents } = req.body;
 
   if (!phoneNumberId || !to) {
     return res.status(400).json({ error: 'Missing phoneNumberId or to' });
@@ -124,6 +145,9 @@ app.post('/api/send-message', async (req, res) => {
       name: templateName,
       language: { code: templateLanguage }
     };
+    if (templateComponents && Array.isArray(templateComponents) && templateComponents.length > 0) {
+      data.template.components = templateComponents;
+    }
   }
 
   try {
