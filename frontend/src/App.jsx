@@ -6,8 +6,8 @@ import './index.css';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 function App() {
-  const [phoneNumberId, setPhoneNumberId] = useState('');
-  const [to, setTo] = useState('');
+  const [phoneNumberId, setPhoneNumberId] = useState('1093967187143767');
+  const [to, setTo] = useState('918123700851');
   const [messageType, setMessageType] = useState('text');
   
   // Text message states
@@ -182,16 +182,16 @@ function App() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="to">Recipient Phone (Country code + Number)</label>
-              <input 
-                type="text" 
+              <label htmlFor="to">Recipient Phone</label>
+              <select 
                 id="to"
                 className="form-control"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                placeholder="e.g. 918123700851"
-                required
-              />
+              >
+                <option value="918123700851">+91 81237 00851</option>
+                <option value="919986856133">+91 99868 56133</option>
+              </select>
             </div>
 
             <div className="form-group">
