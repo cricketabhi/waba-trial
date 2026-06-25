@@ -56,7 +56,8 @@ function App() {
           if (approved.length > 0) handleTemplateChange(approved[0]);
         } catch (error) {
           console.error('Error fetching templates:', error);
-          setStatusMsg({ type: 'error', text: 'Could not load templates. Did you add WABA_ID to backend?' });
+          const msg = error.response?.data?.error || error.message || 'Could not load templates.';
+          setStatusMsg({ type: 'error', text: `Template Fetch Error: ${msg}` });
         }
       };
       fetchTemplates();
