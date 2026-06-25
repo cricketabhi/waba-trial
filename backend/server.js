@@ -112,7 +112,8 @@ app.get('/api/templates', async (req, res) => {
     res.json(response.data.data || []);
   } catch (error) {
     console.error('Error fetching templates:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Failed to fetch templates' });
+    const metaError = error.response?.data?.error?.message || 'Failed to fetch templates';
+    res.status(500).json({ error: metaError });
   }
 });
 
