@@ -92,7 +92,7 @@ app.get('/api/activity', (req, res) => {
 // API to Send Messages
 // ==========================================
 app.post('/api/send-message', async (req, res) => {
-  const { phoneNumberId, to, type, text, templateName, templateLanguage } = req.body;
+  const { phoneNumberId, to, type, text, documentUrl, documentCaption, documentFilename, templateName, templateLanguage } = req.body;
 
   if (!phoneNumberId || !to) {
     return res.status(400).json({ error: 'Missing phoneNumberId or to' });
@@ -108,6 +108,13 @@ app.post('/api/send-message', async (req, res) => {
   if (data.type === 'text') {
     if (!text) return res.status(400).json({ error: 'Missing text content for text message' });
     data.text = { preview_url: false, body: text };
+  } else if (data.type === 'document') {
+    if (!documentUrl) return res.status(400).json({ error: 'Missing documentUrl for document message' });
+    data.document = {
+      link: documentUrl,
+      caption: documentCaption || '',
+      filename: documentFilename || 'document'
+    };
   } else if (data.type === 'template') {
     if (!templateName || !templateLanguage) return res.status(400).json({ error: 'Missing templateName or templateLanguage' });
     data.template = {

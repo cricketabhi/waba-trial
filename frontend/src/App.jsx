@@ -8,7 +8,11 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001
 function App() {
   const [phoneNumberId, setPhoneNumberId] = useState('');
   const [to, setTo] = useState('');
+  const [messageType, setMessageType] = useState('text');
   const [text, setText] = useState('');
+  const [documentUrl, setDocumentUrl] = useState('');
+  const [documentCaption, setDocumentCaption] = useState('');
+  const [documentFilename, setDocumentFilename] = useState('');
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState(null);
@@ -35,14 +39,26 @@ function App() {
     setStatusMsg(null);
 
     try {
-      await axios.post(`${API_BASE_URL}/send-message`, {
+      let payload = {
         phoneNumberId,
         to,
-        type: 'text',
-        text
-      });
+        type: messageType
+      };
+
+      if (messageType === 'text') {
+        payload.text = text;
+      } else if (messageType === 'document') {
+        payload.documentUrl = documentUrl;
+        payload.documentCaption = documentCaption;
+        payload.documentFilename = documentFilename;
+      }
+
+      await axios.post(`${API_BASE_URL}/send-message`, payload);
       setStatusMsg({ type: 'success', text: 'Message sent successfully!' });
       setText(''); // clear text
+      setDocumentUrl('');
+      setDocumentCaption('');
+      setDocumentFilename('');
     } catch (error) {
       console.error(error);
       setStatusMsg({ 
@@ -99,17 +115,71 @@ function App() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="text">Message Text</label>
-              <textarea 
-                id="text"
+              <label htmlFor="messageType">Message Type</label>
+              <select 
+                id="messageType"
                 className="form-control"
-                rows="4"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Type your message here..."
-                required
-              ></textarea>
+                value={messageType}
+                onChange={(e) => setMessageType(e.target.value)}
+              >
+                <option value="text">Text</option>
+                <option value="document">Document</option>
+              </select>
             </div>
+
+            {messageType === 'text' && (
+              <div className="form-group">
+                <label htmlFor="text">Message Text</label>
+                <textarea 
+                  id="text"
+                  className="form-control"
+                  rows="4"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Type your message here..."
+                  required
+                ></textarea>
+              </div>
+            )}
+
+            {messageType === 'document' && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="documentUrl">Document URL</label>
+                  <input 
+                    type="url" 
+                    id="documentUrl"
+                    className="form-control"
+                    value={documentUrl}
+                    onChange={(e) => setDocumentUrl(e.target.value)}
+                    placeholder="https://example.com/file.pdf"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="documentFilename">Filename (Optional)</label>
+                  <input 
+                    type="text" 
+                    id="documentFilename"
+                    className="form-control"
+                    value={documentFilename}
+                    onChange={(e) => setDocumentFilename(e.target.value)}
+                    placeholder="e.g. invoice.pdf"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="documentCaption">Caption (Optional)</label>
+                  <input 
+                    type="text" 
+                    id="documentCaption"
+                    className="form-control"
+                    value={documentCaption}
+                    onChange={(e) => setDocumentCaption(e.target.value)}
+                    placeholder="Check out this document!"
+                  />
+                </div>
+              </>
+            )}
 
             <button type="submit" className="btn btn-primary" disabled={loading}>
               {loading ? 'Sending...' : (
